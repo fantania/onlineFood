@@ -70,14 +70,17 @@ def food_items_by_category(request, pk=None):
 def add_category(request):
     if request.method == 'POST':
         form = CategoryForm(request.POST)
-        if form.is_valid:
-            category_name = form.changed_data[1]
+        if form.is_valid():
+            #category_name = form.changed_data[1]
+            category_name = form.cleaned_data['category_name']
             category = form.save(commit=False)
             category.vendor = get_vendor(request)
             category.slug = slugify(category_name)
             form.save()
             messages.success(request, 'Category added successfully!')
             return redirect('menu_builder')
+        else:
+            print(form.errors)
     else:
         form = CategoryForm()
     
