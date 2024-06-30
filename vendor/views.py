@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from accounts.forms import UserProfileForm
 from accounts.models import UserProfile
 from accounts.views import check_role_vendor
+from menu.models import Category, FoodItem
 from vendor.forms import VendorForm
 from vendor.models import Vendor
 
@@ -39,3 +40,26 @@ def v_profile(request):
 
     }
     return render(request, 'vendor/v_profile.html', context)
+
+
+def menu_builder(request):
+    vendor = Vendor.objects.get(user=request.user)
+    categories = Category.objects.filter(vendor=vendor)
+    context = {
+        'categories': categories,
+    }
+    return render(request, 'vendor/menu_builder.html', context)
+
+def food_items_by_category(request, pk=None):
+    vendor = Vendor.objects.get(user=request.user)
+    category = get_object_or_404(Category, pk=pk)
+    food_items = FoodItem.objects.filter(vendor=vendor, category=category)
+    context = {
+        'food_items': food_items,
+        'category': category,
+    }
+    return render(request, 'vendor/food_items_by_category.html', context)
+
+
+
+
