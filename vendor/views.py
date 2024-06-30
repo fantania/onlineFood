@@ -8,6 +8,9 @@ from accounts.views import check_role_vendor
 from menu.models import Category, FoodItem
 from vendor.forms import VendorForm
 from vendor.models import Vendor
+from django.template.defaultfilters import slugify
+
+from menu.forms import CategoryForm
 
 def get_vendor(request):
     vendor = Vendor.objects.get(user=request.user)
@@ -63,6 +66,26 @@ def food_items_by_category(request, pk=None):
         'category': category,
     }
     return render(request, 'vendor/food_items_by_category.html', context)
+
+def add_category(request):
+    if request.method == 'POST':
+        form = CategoryForm(request.POST)
+        if form.is_valid:
+            category_name = form.changed_data[1]
+            category = form.save(commit=False)
+            category.vendor = get_vendor(request)
+            category.slug = slugify(category_name)
+            form.save()
+            messages.success(request, 'Category added successfully!')
+            return redirect('menu_builder')
+    else:
+        form = CategoryForm()
+    
+    context = {
+        'form': form,
+    }
+    return render(request, 'vendor/add_category.html', context)
+
 
 
 
