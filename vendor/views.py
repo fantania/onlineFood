@@ -9,6 +9,10 @@ from menu.models import Category, FoodItem
 from vendor.forms import VendorForm
 from vendor.models import Vendor
 
+def get_vendor(request):
+    vendor = Vendor.objects.get(user=request.user)
+    return vendor
+
 @login_required
 @user_passes_test(check_role_vendor)
 def v_profile(request):
@@ -43,7 +47,7 @@ def v_profile(request):
 
 
 def menu_builder(request):
-    vendor = Vendor.objects.get(user=request.user)
+    vendor = get_vendor(request)
     categories = Category.objects.filter(vendor=vendor)
     context = {
         'categories': categories,
@@ -51,7 +55,7 @@ def menu_builder(request):
     return render(request, 'vendor/menu_builder.html', context)
 
 def food_items_by_category(request, pk=None):
-    vendor = Vendor.objects.get(user=request.user)
+    vendor = get_vendor(request)
     category = get_object_or_404(Category, pk=pk)
     food_items = FoodItem.objects.filter(vendor=vendor, category=category)
     context = {
