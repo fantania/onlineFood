@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.urls import reverse
 
 from accounts.forms import UserProfileForm
 from accounts.models import UserProfile
@@ -63,7 +64,7 @@ def menu_builder(request):
 def food_items_by_category(request, pk=None):
     vendor = get_vendor(request)
     category = get_object_or_404(Category, pk=pk)
-    food_items = FoodItem.objects.filter(vendor=vendor, category=category)
+    food_items = FoodItem.objects.filter(vendor=vendor, category=category).order_by('created_at')
     context = {
         'food_items': food_items,
         'category': category,
@@ -74,7 +75,6 @@ def add_category(request):
     if request.method == 'POST':
         form = CategoryForm(request.POST)
         if form.is_valid():
-            #category_name = form.changed_data[1]
             category_name = form.cleaned_data['category_name']
             category = form.save(commit=False)
             category.vendor = get_vendor(request)
@@ -97,7 +97,6 @@ def edit_category(request, pk=None):
     if request.method == 'POST':
         form = CategoryForm(request.POST, instance=category)
         if form.is_valid():
-            #category_name = form.changed_data[1]
             category_name = form.cleaned_data['category_name']
             category = form.save(commit=False)
             category.vendor = get_vendor(request)
@@ -131,9 +130,8 @@ def add_food(request):
         form = FoodForm(request.POST, request.FILES)
         if form.is_valid():
             food_title = form.cleaned_data['food_title']
-            category = form.cleaned_data['category']
-            category.slug = slugify(food_title)
             food = form.save(commit=False)
+            food.slug = slugify(food_title)
             food.vendor = get_vendor(request)    
             form.save()
             messages.success(request, 'Food added successfully!')
@@ -150,30 +148,30 @@ def add_food(request):
 
 
 def edit_food(request, pk=None):
-    category= get_object_or_404(Category, pk = pk)
+    food= get_object_or_404(FoodItem, pk = pk)
     if request.method == 'POST':
-        form = CategoryForm(request.POST, instance=category)
+        form = FoodForm(request.POST, instance=food)
         if form.is_valid():
-            #category_name = form.changed_data[1]
-            category_name = form.cleaned_data['category_name']
-            category = form.save(commit=False)
-            category.vendor = get_vendor(request)
-            category.slug = slugify(category_name)
+            food_title = form.cleaned_data['food_title']
+            category = form.cleaned_data['category']
+            food = form.save(commit=False)
+            food.slug = slugify(food_title)
+            food.vendor = get_vendor(request)    
             form.save()
-            messages.success(request, 'Category updated successfully!')
-            return redirect('menu_builder')
+            messages.success(request, 'Food updated successfully!')
+            return redirect(reverse('food_items_by_category', args=[category.id]))
         else:
             print(form.errors)
     else:
-        form = CategoryForm(instance=category)
+        form = FoodForm(instance=food)
     
     context = {
         'form': form,
-        'category': category,
+        'food': food,
         
     }
 
-    return render(request, 'vendor/edit_category.html', context)
+    return render(request, 'vendor/edit_food.html', context)
 
 
 def delete_food(request, pk=None):
