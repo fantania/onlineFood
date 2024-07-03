@@ -10,7 +10,7 @@ from vendor.forms import VendorForm
 from vendor.models import Vendor
 from django.template.defaultfilters import slugify
 
-from menu.forms import CategoryForm
+from menu.forms import CategoryForm, FoodForm
 
 def get_vendor(request):
     vendor = Vendor.objects.get(user=request.user)
@@ -124,6 +124,64 @@ def delete_category(request, pk=None):
     category.delete()
     messages.success(request, 'Category has been deleted successfully!')
     return redirect('menu_builder')
+
+
+def add_food(request):
+    if request.method == 'POST':
+        form = FoodForm(request.POST, request.FILES)
+        if form.is_valid():
+            food_title = form.cleaned_data['food_title']
+            category = form.cleaned_data['category']
+            category.slug = slugify(food_title)
+            food = form.save(commit=False)
+            food.vendor = get_vendor(request)    
+            form.save()
+            messages.success(request, 'Food added successfully!')
+            return redirect('menu_builder')
+        else:
+            print(form.errors)
+    else:
+        form = FoodForm()
+    
+    context = {
+        'form': form,
+    }
+    return render(request, 'vendor/add_food.html', context)
+
+
+def edit_food(request, pk=None):
+    category= get_object_or_404(Category, pk = pk)
+    if request.method == 'POST':
+        form = CategoryForm(request.POST, instance=category)
+        if form.is_valid():
+            #category_name = form.changed_data[1]
+            category_name = form.cleaned_data['category_name']
+            category = form.save(commit=False)
+            category.vendor = get_vendor(request)
+            category.slug = slugify(category_name)
+            form.save()
+            messages.success(request, 'Category updated successfully!')
+            return redirect('menu_builder')
+        else:
+            print(form.errors)
+    else:
+        form = CategoryForm(instance=category)
+    
+    context = {
+        'form': form,
+        'category': category,
+        
+    }
+
+    return render(request, 'vendor/edit_category.html', context)
+
+
+def delete_food(request, pk=None):
+    category = get_object_or_404(Category, pk=pk)
+    category.delete()
+    messages.success(request, 'Category has been deleted successfully!')
+    return redirect('menu_builder')
+
 
 
 
