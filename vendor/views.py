@@ -175,10 +175,11 @@ def edit_food(request, pk=None):
 
 
 def delete_food(request, pk=None):
-    category = get_object_or_404(Category, pk=pk)
-    category.delete()
-    messages.success(request, 'Category has been deleted successfully!')
-    return redirect('menu_builder')
+    food = get_object_or_404(FoodItem, pk=pk)
+    category = food.category
+    food.delete()
+    messages.success(request, 'Food has been deleted successfully!')
+    return redirect(reverse('food_items_by_category', args=[category.id]))
 
 
 
