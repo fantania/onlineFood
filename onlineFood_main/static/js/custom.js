@@ -11,9 +11,21 @@ $(document).ready(function(){
             type: 'GET',
             url: url,
             success: function(response){
-                if(response.status == 'Failed'){
-                    console.log('raise the error message')
-                }else{
+                if(response.status == 'login_required'){
+                    Swal.fire({
+                        icon: "info",
+                        text: response.message
+                      }).then(function(){
+                        window.location = '/login'
+                      });
+                }if(response.status == 'Failed'){
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: response.message
+                      });
+                }
+                else{
                     $('#cart-counter').html(response.cart_counter['cart_count']);
                     $('#qty-'+food_id).html(response.qty);
                 }
@@ -42,15 +54,25 @@ $(document).ready(function(){
             type: 'GET',
             url: url,
             success: function(response){
-                if(response.status == 'Failed'){
-                    console.log('raise the error message')
-                }else{
+                if(response.status == 'login_required'){
+                    Swal.fire({
+                        icon: "info",
+                        text: response.message
+                      }).then(function(){
+                        window.location = '/login'
+                      });
+                }if(response.status == 'Failed'){
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: response.message
+                      });
+                }
+                else{
                     $('#cart-counter').html(response.cart_counter['cart_count']);
                     $('#qty-'+food_id).html(response.qty);
                 }
             }
-
         })
     })
-
 });
