@@ -75,4 +75,41 @@ $(document).ready(function(){
             }
         })
     })
+
+    //Delete cart item
+    $('.delete_cart').on('click', function(e){
+        e.preventDefault();
+        cart_id = $(this).attr('data-id');
+        url = $(this).attr('data-url');
+
+        $.ajax({
+            type: 'GET',
+            url: url,
+            success: function(response){if(response.status == 'Failed'){
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: response.message
+                      });
+                }
+                else{
+                    $('#cart-counter').html(response.cart_counter['cart_count']);
+                    Swal.fire({
+                        icon:response.status,
+                        title: "Great...",
+                        text: response.message
+                      });   
+                    removeCartItem(0, cart_id)  
+                }
+            }
+        })
+    })
+
+    // Delete the cart item if the quantity is 0
+    function removeCartItem(cartItemQty, cart_id){
+        if(cartItemQty <= 0){
+            //remove the item element
+            $('#cart-item-'+cart_id).remove()
+        }
+    }
 });
