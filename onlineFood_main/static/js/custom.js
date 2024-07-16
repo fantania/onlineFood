@@ -109,7 +109,8 @@ $(document).ready(function(){
     function removeCartItem(cartItemQty, cart_id){
         if(cartItemQty <= 0){
             //remove the item element
-            $('#cart-item-'+cart_id).remove()
+            //$('#cart-item-'+cart_id).remove()
+            document.getElementById("cart-item-"+cart_id).remove()
         }
     }
 });
