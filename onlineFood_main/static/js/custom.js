@@ -79,7 +79,9 @@ $(document).ready(function(){
     //Delete cart item
     $('.delete_cart').on('click', function(e){
         e.preventDefault();
+        
         cart_id = $(this).attr('data-id');
+        console.log(cart_id);
         url = $(this).attr('data-url');
 
         $.ajax({
@@ -99,7 +101,8 @@ $(document).ready(function(){
                         title: "Great...",
                         text: response.message
                       });   
-                    removeCartItem(0, cart_id)  
+                    removeCartItem(0, cart_id) 
+                    checkEmptyCart(); 
                 }
             }
         })
@@ -110,7 +113,16 @@ $(document).ready(function(){
         if(cartItemQty <= 0){
             //remove the item element
             //$('#cart-item-'+cart_id).remove()
+            console.log("cart-item-"+cart_id)
             document.getElementById("cart-item-"+cart_id).remove()
+        }
+    }
+
+    //Check if the cart is empty
+    function checkEmptyCart(){
+        var cart_counter = $('#cart_counter').innerHTML
+        if(cart_count == 0){
+            $('#empty-cart').style.display = "block";
         }
     }
 });
