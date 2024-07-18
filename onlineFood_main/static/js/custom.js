@@ -49,6 +49,7 @@ $(document).ready(function(){
 
         food_id = $(this).attr('data-id');
         url = $(this).attr('data-url');
+        cart_id = $(this).attr('id');
 
         $.ajax({
             type: 'GET',
@@ -71,6 +72,8 @@ $(document).ready(function(){
                 else{
                     $('#cart-counter').html(response.cart_counter['cart_count']);
                     $('#qty-'+food_id).html(response.qty);
+                    removeCartItem(response.qty, cart_id);
+                    checkEmptyCart(); 
                 }
             }
         })
@@ -81,7 +84,6 @@ $(document).ready(function(){
         e.preventDefault();
         
         cart_id = $(this).attr('data-id');
-        console.log(cart_id);
         url = $(this).attr('data-url');
 
         $.ajax({
@@ -96,12 +98,12 @@ $(document).ready(function(){
                 }
                 else{
                     $('#cart-counter').html(response.cart_counter['cart_count']);
-                    Swal.fire({
-                        icon:response.status,
-                        title: "Great...",
-                        text: response.message
-                      });   
-                    removeCartItem(0, cart_id) 
+                    // Swal.fire({
+                    //     icon:response.status,
+                    //     title: "Great...",
+                    //     text: response.message
+                    //   });   
+                    removeCartItem(0,cart_id);
                     checkEmptyCart(); 
                 }
             }
@@ -110,19 +112,18 @@ $(document).ready(function(){
 
     // Delete the cart item if the quantity is 0
     function removeCartItem(cartItemQty, cart_id){
+        console.log("Inside removeCartItem")
         if(cartItemQty <= 0){
             //remove the item element
-            //$('#cart-item-'+cart_id).remove()
-            console.log("cart-item-"+cart_id)
-            document.getElementById("cart-item-"+cart_id).remove()
+            $('#cart-item-'+cart_id).remove();
         }
     }
 
     //Check if the cart is empty
     function checkEmptyCart(){
-        var cart_counter = $('#cart_counter').innerHTML
-        if(cart_count == 0){
-            $('#empty-cart').style.display = "block";
+        var cart_counter = $('#cart-counter').html()
+        if(cart_counter == 0){
+            $('#empty-cart').css("display", "block");
         }
     }
 });
