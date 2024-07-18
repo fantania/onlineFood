@@ -112,10 +112,13 @@ $(document).ready(function(){
 
     // Delete the cart item if the quantity is 0
     function removeCartItem(cartItemQty, cart_id){
-        console.log("Inside removeCartItem")
         if(cartItemQty <= 0){
-            //remove the item element
-            $('#cart-item-'+cart_id).remove();
+            var cartItemElement = document.getElementById("cart-item-" + cart_id);
+            if (cartItemElement) {
+                document.getElementById("cart-item-" + cart_id).remove();
+            } else {
+                console.error("Element with ID 'cart-item-" + cart_id + "' not found.");
+            }
         }
     }
 
