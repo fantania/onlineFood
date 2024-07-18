@@ -191,6 +191,8 @@ def delete_food(request, pk=None):
     return redirect(reverse('food_items_by_category', args=[category.id]))
 
 
+def opening_hours(request):
+   return render(request, 'vendor/opening_hours.html')
 
 
 
