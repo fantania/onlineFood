@@ -28,6 +28,15 @@ $(document).ready(function(){
                 else{
                     $('#cart-counter').html(response.cart_counter['cart_count']);
                     $('#qty-'+food_id).html(response.qty);
+
+                    // subtotal, tax, delivery, transaction and grand totat
+                    applyCartAmounts(
+                        response.cart_amount['subtotal'], 
+                        response.cart_amount['tax'], 
+                        response.cart_amount['transaction'], 
+                        response.cart_amount['delivery'], 
+                        response.cart_amount['grand_total']
+                    )
                 }
             }
 
@@ -74,6 +83,14 @@ $(document).ready(function(){
                     $('#qty-'+food_id).html(response.qty);
                     removeCartItem(response.qty, cart_id);
                     checkEmptyCart(); 
+                    // subtotal, tax, delivery, transaction and grand totat
+                    applyCartAmounts(
+                        response.cart_amount['subtotal'], 
+                        response.cart_amount['tax'], 
+                        response.cart_amount['transaction'], 
+                        response.cart_amount['delivery'], 
+                        response.cart_amount['grand_total']
+                    )
                 }
             }
         })
@@ -98,13 +115,21 @@ $(document).ready(function(){
                 }
                 else{
                     $('#cart-counter').html(response.cart_counter['cart_count']);
-                    // Swal.fire({
-                    //     icon:response.status,
-                    //     title: "Great...",
-                    //     text: response.message
-                    //   });   
+                    Swal.fire({
+                        icon:response.status,
+                        title: "Great...",
+                        text: response.message
+                      });   
                     removeCartItem(0,cart_id);
                     checkEmptyCart(); 
+                    // subtotal, tax, delivery, transaction and grand totat
+                    applyCartAmounts(
+                        response.cart_amount['subtotal'], 
+                        response.cart_amount['tax'], 
+                        response.cart_amount['transaction'], 
+                        response.cart_amount['delivery'], 
+                        response.cart_amount['grand_total']
+                    )
                 }
             }
         })
@@ -128,5 +153,17 @@ $(document).ready(function(){
         if(cart_counter == 0){
             $('#empty-cart').css("display", "block");
         }
+    }
+
+    //apply cart amounts
+    function applyCartAmounts(subtotal, tax, transaction, delivery, grand_total){
+        if(window.location.pathname == '/cart/'){
+            $('#subtotal').html(subtotal)
+            $('#tax').html(tax)
+            $('#transaction').html(transaction)
+            $('#delivery').html(delivery)
+            $('#total').html(grand_total)
+        }
+    
     }
 });
