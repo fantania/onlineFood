@@ -166,4 +166,53 @@ $(document).ready(function(){
         }
     
     }
+    $('.add_hour').on('click', function(e){
+        e.preventDefault();
+        url = $("#add_hour_url").val()
+        var day = $('#id_day').val()
+        var from_hour = $('#id_from_hour').val()
+        var to_hour = $('#id_to_hour').val()
+        var is_closed = $('#id_is_closed').is(':checked')
+        //var day = document.getElementById('id_day').value
+        var csrf_token = $('input[name=csrfmiddlewaretoken]').val()
+
+        if(is_closed){
+            is_closed = 'True'
+            condition = "day!= ''"
+        }else{
+            is_closed = 'False'
+            condition = "day!= ''&& to_hour!= '' && from_hour != ''"
+        }
+        if(eval(condition)){
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: {
+                    'day': day,
+                    'from_hour': from_hour,
+                    'to_hour': to_hour,
+                    'is_closed': is_closed,
+                    'csrfmiddlewaretoken': csrf_token
+                },
+                success: function(response){
+                    if(response.is_closed == 'Closed'){
+                        html='<tr><td><b>'+response.day+'</b></td><td>Closed</td><td><a href="#">Remove</a></td></tr>'
+                    }else{
+                        html='<tr><td><b>'+response.day+'</b></td><td>'+response.from_hour+' - '+response.to_hour+'</td><td><a href="#">Remove</a></td></tr>'
+                    }
+                  $(".opening_hours").append(html)
+                  $("#opening_hours").trigger("reset")
+                    Swal.fire({
+                        icon:'success',
+                        text: response.status
+                      });  
+                }
+            }) 
+        }else{
+            Swal.fire({
+                icon:'info',
+                title: "Please fill all fields"
+              });  
+        } 
+    })
 });
