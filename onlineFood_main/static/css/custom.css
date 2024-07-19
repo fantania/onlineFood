@@ -14,5 +14,9 @@
     z-index: 99;
 }
 
+table > tbody > tr > td{
+    border: none !important
+}
+
 
 
