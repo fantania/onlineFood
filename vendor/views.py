@@ -225,8 +225,6 @@ def add_opening_hours(request):
             except IntegrityError as e:
                     response = {'status': 'failed'}
                     return JsonResponse(response)
-        
-
 
         else:
             HttpResponse('Invalid request')
