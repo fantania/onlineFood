@@ -100,7 +100,7 @@ $(document).ready(function(){
     $('.delete_cart').on('click', function(e){
         e.preventDefault();
         
-        cart_id = $(this).attr('data-id');
+        cart_id = $(this).attr('id');
         url = $(this).attr('data-url');
 
         $.ajax({
@@ -122,7 +122,7 @@ $(document).ready(function(){
                       });   
                     removeCartItem(0,cart_id);
                     checkEmptyCart(); 
-                    // subtotal, tax, delivery, transaction and grand totat
+                    // subtotal, tax, delivery, transaction and grand total
                     applyCartAmounts(
                         response.cart_amount['subtotal'], 
                         response.cart_amount['tax'], 
