@@ -195,17 +195,22 @@ $(document).ready(function(){
                     'csrfmiddlewaretoken': csrf_token
                 },
                 success: function(response){
+                 if(response.status == 'success'){
                     if(response.is_closed == 'Closed'){
-                        html='<tr><td><b>'+response.day+'</b></td><td>Closed</td><td><a href="#">Remove</a></td></tr>'
+                        html='<tr id=hour-'+response.id+'><td><b>'+response.day+'</b></td><td>Closed</td><td><a href="#" class="remove_hour" data-url="/vendor/opening-hours/remove/'+response.id+'/">Remove</a></td></tr>'
                     }else{
-                        html='<tr><td><b>'+response.day+'</b></td><td>'+response.from_hour+' - '+response.to_hour+'</td><td><a href="#">Remove</a></td></tr>'
+                        html='<tr id=hour-'+response.id+'><td><b>'+response.day+'</b></td><td>'+response.from_hour+' - '+response.to_hour+'</td><td><a href="#" class="remove_hour" data-url="/vendor/opening-hours/remove/'+response.id+'/">Remove</a></td></tr>'
                     }
                   $(".opening_hours").append(html)
                   $("#opening_hours").trigger("reset")
+                    
+                 } else{
                     Swal.fire({
-                        icon:'success',
-                        text: response.status
-                      });  
+                        icon:'error',
+                        title: response.status,
+                        text:response.message
+                      }); 
+                 }    
                 }
             }) 
         }else{
@@ -215,4 +220,19 @@ $(document).ready(function(){
               });  
         } 
     })
+
+   $(document).on('click','.remove_hour',function(e){
+        e.preventDefault();
+        url = $(this).attr('data-url');
+
+        $.ajax({
+            type: 'GET',
+            url:url,
+            success:function(response){
+                if(response.status == 'success'){
+                    $('#hour-'+response.id).remove() 
+                }
+            }
+        })
+   })
 });

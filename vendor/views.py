@@ -223,11 +223,18 @@ def add_opening_hours(request):
                         response = {'status': 'success', 'id':hour.id, 'day': day.get_day_display(),'from_hour': day.from_hour, 'to_hour': day.to_hour}
                 return JsonResponse(response)
             except IntegrityError as e:
-                    response = {'status': 'failed'}
+                    response = {'status': 'failed', 'message': from_hour+'-'+to_hour+' already exists for this day!'}
                     return JsonResponse(response)
 
         else:
             HttpResponse('Invalid request')
+
+def remove_opening_hours(request, pk =None):
+    if request.user.is_authenticated:
+        if is_ajax(request):
+            hour = get_object_or_404(OpeningHour, pk=pk)
+            hour.delete()
+            return JsonResponse({'status':'success','id':pk})
 
 
 
