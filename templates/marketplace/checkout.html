@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
+
     <!-- Main Section Start -->
 <div class="main-section pt-5">
     <div class="page-section">
@@ -75,7 +76,6 @@
                                     <div id="menu-item-list-6272" class="menu-itam-list">
                                     
                                         <ul>
-                                            {% if cart_items %} 
                                                 {% for item in cart_items %}
 
                                                 <li id="cart-item-{{item.id}}">
@@ -84,11 +84,6 @@
                                                         <h6>{{item.foodItem}}</h6>
                                                         <span>{{item.foodItem.description}}</span>
                                                     </div>
-                                                    <!--
-                                                    <div class="quantity" style="display: inline-block; position:absolute; top: -20%; transform: translateY(-50%); margin-top: 10%;">
-                                                        <span>{{item.quantity}} QTY</span>
-                                                    </div>
-                                                    -->
                                                     <div class="price-holder">
                                                         <div class="quantity mr-5" style="float: left;">
                                                             <span>{{item.quantity}} QTY</span>
@@ -98,11 +93,7 @@
                                                 </li>
                                                 
                                                 {% endfor %}
-                                            {% else %}
-                                                <div class="text-center p-5">
-                                                    <h5>Cart is empty</h5>
-                                                </div>
-                                            {% endif %}
+                                            
                                         </ul>
                                     </div>
                                     
@@ -144,7 +135,33 @@
                                                     <span id="total">{{grand_total}}</span>
                                                 </span>
                                             </li>
+                                            <br>
+                                            <!-- select payment method -->
+                                            <h5>SELECT PAYMENT METHOD</h5>
+                                            <div class="payment-method">
+                                                <label>
+                                                    <input type="radio" name="payment_method" value="PayPal">
+                                                    <img src="{% static 'images/paypal.png' %}" alt="PayPal">
+                                                </label>
+                                                &emsp;
+                                                <label>
+                                                    <input type="radio" name="payment_method" value="Visa">
+                                                    <img src="{% static 'images/visa.png' %}" alt="Visa">
+                                                </label>
+                                                &emsp;
+                                                <label>
+                                                    <input type="radio" name="payment_method" value="MasterCard">
+                                                    <img src="{% static 'images/mastercard.png' %}" alt="Master Card">
+                                                </label>
+                                                &emsp;
+                                                <label>
+                                                    <input type="radio" name="payment_method" value="Discover">
+                                                    <img src="{% static 'images/discover.png' %}" alt="Discover">
+                                                </label>
+                                            </div>
+                                            <!-- end select payment method -->
                                             <button type="submit" class="btn btn-danger w-100 p-2 mt-3">PLACE ORDER</button>
+                                            
                                         </ul>
                                         <!-- end form -->
                                     </form>
