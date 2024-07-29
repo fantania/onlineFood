@@ -1,10 +1,11 @@
 from datetime import date, datetime
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 
 from marketplace.context_processors import get_cart_amounts, get_cart_counter
 from marketplace.models import Cart
 from menu.models import Category, FoodItem
+from orders.forms import OrderForm
 from vendor.models import OpeningHour, Vendor
 from django.db.models import Prefetch
 from django.contrib.auth.decorators import login_required
@@ -176,6 +177,18 @@ def delete_cart(request,cart_id):
             'status': 'login_required',
             'message': 'Please login to continue'
         })
+
+def checkout(request):
+    cart_items = Cart.objects.filter(user=request.user).order_by('created_date')
+    cart_count = cart_items.count()
+    if cart_count <= 0:
+        return redirect('marketplace')
+    form = OrderForm()
+    context = {
+        'form': form,
+        'cart_items': cart_items,
+    }
+    return render(request, 'marketplace/checkout.html', context)
 
 
     
