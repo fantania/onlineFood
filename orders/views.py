@@ -4,6 +4,7 @@ from marketplace.context_processors import get_cart_amounts
 from marketplace.models import Cart
 from orders.forms import OrderForm
 from orders.models import Order
+from orders.utils import generate_order_number
 
 def place_order(request):
     cart_items = Cart.objects.filter(user=request.user).order_by('created_date')
@@ -34,8 +35,9 @@ def place_order(request):
             order.total = grand_total
             order.tax = tax
             order.payment_method = request.POST['payment_method']
-            order.order_number = '123'
-            order.save()
+            order.save() # order id/pk is generated
+            order.order_number = generate_order_number(order.id)
+            order.save() # save the generated order number with the id/pk
             return redirect('place_order')
         else:
             print(form.errors)
