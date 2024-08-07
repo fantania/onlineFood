@@ -31,5 +31,6 @@ def get_cart_amounts(request):
             subtotal += (foodItem.price * item.quantity)
         tax = round(subtotal * 7/100, 2)
         grand_total = float(subtotal + transaction + tax + delivery)
-        transaction = round(grand_total*(float(2.9/100)) + float(0.30), 2)
+        transaction = grand_total*(2.9/100) + (0.30)
+        transaction = round(transaction, 2)
     return dict(subtotal = subtotal, tax = tax, grand_total = grand_total, transaction = transaction, delivery = delivery)
