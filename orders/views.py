@@ -6,11 +6,14 @@ from marketplace.models import Cart
 from orders.forms import OrderForm
 from orders.models import Order, OrderedFood, Payment
 from orders.utils import generate_order_number
+from accounts.utils import send_notification
+from django.contrib.auth.decorators import login_required
 
 
 def is_ajax(request):
     return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
+@login_required(login_url='login')
 def place_order(request):
     cart_items = Cart.objects.filter(user=request.user).order_by('created_date')
     cart_count = cart_items.count()
@@ -53,6 +56,7 @@ def place_order(request):
         
     return render(request, 'orders/place_order.html')
 
+@login_required(login_url='login')
 def payments(request):
     # Check if the request is ajax or not
     if is_ajax(request) and request.method == 'POST':
@@ -91,11 +95,34 @@ def payments(request):
             orderder_food.amount = item.foodItem.price * item.quantity # total amount
             orderder_food.save()
 
-    # SEND ORDER CONFIRMATION EMAIL TO THE CUSTOMER
+        # SEND ORDER CONFIRMATION EMAIL TO THE CUSTOMER
+        mail_subject = 'Thank you for your order.'
+        mail_template = 'orders/order_confirmation_email.html'
+        context = {
+            'user': request.user,
+            'order': order,
+            'to_email': order.email,
+        }
+        send_notification(mail_subject, mail_template, context)
 
-    # SEND ORDER RECEIVED EMAIL TO THE VENDOR
+        # SEND ORDER RECEIVED EMAIL TO THE VENDOR
+        mail_subject = 'You have received a new order.'
+        mail_template = 'orders/new_order_received.html'
+        to_emails = []
+        vendor_names = []
+        for e in cart_items:
+            to_emails.append(e.foodItem.vendor.user.email)
+            vendor_names.append(e.foodItem.vendor.user.first_name)
+        context = {
+            'order': order,
+            'to_email': to_emails[0],
+            'user': vendor_names[0]
+        }
+        send_notification(mail_subject, mail_template, context)
 
-    # CLEAR THE CART IF THE PAYMENT IS SUCCESS
+        # CLEAR THE CART IF THE PAYMENT IS SUCCESS
+        cart_items.delete()
 
-    # RETURN BACK TO AJAX WITH THE STATUS SUCCESS OF FAILURE
+        # RETURN BACK TO AJAX WITH THE STATUS SUCCESS OF FAILURE
+        return HttpResponse('Success')
     return HttpResponse('Payment view')
