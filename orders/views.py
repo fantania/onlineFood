@@ -1,13 +1,19 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 
 from marketplace.context_processors import get_cart_amounts
 from marketplace.models import Cart
+from onlineFood_main.settings import PAYPAL_BASE_URL, PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET
 from orders.forms import OrderForm
 from orders.models import Order, OrderedFood, Payment
 from orders.utils import generate_order_number
 from accounts.utils import send_notification
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+import simplejson as json
+
+import base64
+import requests
 
 
 def is_ajax(request):
@@ -22,8 +28,6 @@ def place_order(request):
     
     subtotal = get_cart_amounts(request)['subtotal']
     tax = get_cart_amounts(request)['tax']
-    transaction = get_cart_amounts(request)['transaction']
-    delivery = get_cart_amounts(request)['delivery']
     grand_total = get_cart_amounts(request)['grand_total']
     
     if request.method == 'POST':
@@ -124,5 +128,146 @@ def payments(request):
         cart_items.delete()
 
         # RETURN BACK TO AJAX WITH THE STATUS SUCCESS OF FAILURE
-        return HttpResponse('Success')
+        response = {
+            'order_number': order_number,
+            'transaction_id': transaction_id
+        }
+        return JsonResponse(response)
     return HttpResponse('Payment view')
+
+
+def order_complete(request):
+    order_number = request.GET.get('order_no')
+    transaction_id = request.GET.get('trans_id')
+
+    try:
+        order = Order.objects.get(order_number=order_number, payment__transaction_id=transaction_id, is_ordered=True)
+        ordered_food = OrderedFood.objects.filter(order=order)
+
+        subtotal = 0
+        for item in ordered_food:
+            subtotal += (item.price * item.quantity)
+
+        tax_data = json.loads(order.tax_data)
+        print(tax_data)
+        context = {
+            'order': order,
+            'ordered_food': ordered_food,
+            'subtotal': subtotal,
+            'tax_data': tax_data,
+        }
+        return render(request, 'orders/order_complete.html', context)
+    except:
+        return redirect('home')
+
+
+def generate_paypal_access_token():
+    if not PAYPAL_CLIENT_ID or not PAYPAL_CLIENT_SECRET:
+        raise ValueError("MISSING_API_CREDENTIALS")
+
+    auth = base64.b64encode(f"{PAYPAL_CLIENT_ID}:{PAYPAL_CLIENT_SECRET}".encode()).decode()
+    
+    headers = {
+        "Authorization": f"Basic {auth}",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+
+    data = {
+        "grant_type": "client_credentials"
+    }
+
+    response = requests.post(f"{PAYPAL_BASE_URL}/v1/oauth2/token", headers=headers, data=data)
+
+    if response.status_code == 200:
+        return response.json().get("access_token")
+    else:
+        print(f"Failed to generate Access Token: {response.status_code} - {response.text}")
+        return None
+    
+
+@csrf_exempt 
+def create_order(request):
+        
+    if request.method == 'POST':
+        try:
+            # Generate PayPal access token (similar to generateAccessToken in server.js)
+
+            access_token = generate_paypal_access_token() 
+            grand_total = get_cart_amounts(request)['grand_total']
+
+            # Prepare payload for PayPal order creation
+            payload = {
+                "intent": "CAPTURE",
+                "purchase_units": [
+                    {
+                        "amount": {
+                            "currency_code": "USD",  # Adjust currency as needed
+                            "value": str(grand_total), # Assuming 'order' object is available in this view
+                        },
+                    }
+                ],
+            }
+
+            # Make the API call to create the order
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {access_token}",
+            }
+            response = requests.post("https://api-m.sandbox.paypal.com/v2/checkout/orders", headers=headers, json=payload)
+
+            # Handle the response and return appropriate status and data
+            return JsonResponse(response.json(), status=response.status_code) 
+
+        except Exception as e:
+            return JsonResponse({"error": "Failed to create order."}, status=500)
+
+    return JsonResponse({"error": "Invalid request method."}, status=405)  # Handle non-POST requests
+
+
+@csrf_exempt 
+def capture_order(request, order_id):
+    if request.method == 'POST':
+        try:
+
+            # Generate PayPal access token
+            access_token = generate_paypal_access_token()
+
+            # Make the API call to capture the order
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {access_token}",
+            }
+            response = requests.post(f"https://api-m.sandbox.paypal.com/v2/checkout/orders/{order_id}/capture", headers=headers)
+
+
+            # Handle the response and return appropriate status and data
+            return JsonResponse(response.json(), status=response.status_code)
+        
+
+        except Exception as e:
+            return JsonResponse({"error": "Failed to capture order."}, status=500)
+
+    return JsonResponse({"error": "Invalid request method."}, status=405) 
+
+def generate_paypal_access_token():
+    if not PAYPAL_CLIENT_ID or not PAYPAL_CLIENT_SECRET:
+        raise ValueError("MISSING_API_CREDENTIALS")
+
+    auth = base64.b64encode(f"{PAYPAL_CLIENT_ID}:{PAYPAL_CLIENT_SECRET}".encode()).decode()
+    
+    headers = {
+        "Authorization": f"Basic {auth}",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+
+    data = {
+        "grant_type": "client_credentials"
+    }
+
+    response = requests.post(f"{PAYPAL_BASE_URL}/v1/oauth2/token", headers=headers, data=data)
+
+    if response.status_code == 200:
+        return response.json().get("access_token")
+    else:
+        print(f"Failed to generate Access Token: {response.status_code} - {response.text}")
+        return None
